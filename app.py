@@ -1,100 +1,83 @@
-from datetime import datetime
-import json
 import os
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+from datetime import datetime
 
 app = Flask(__name__)
 
-# Suriin kung nasa Render (cloud) o lokal na computer
-if "GOOGLE_CREDENTIALS" in os.environ:
-  # Kung nasa Render, kukunin ang credentials mula sa Environment Variable
-  creds_dict = json.loads(os.environ["GOOGLE_CREDENTIALS"])
-  gc = gspread.service_account_from_dict(creds_dict)
-else:
-  # Kung nasa lokal na computer mo pa rin, gagamitin ang credentials.json file
-  gc = gspread.service_account(filename="credentials.json")
+# Google Sheets Setup
+def get_sheet():
+    scope = ["https://spreadsheets.google.com/feeds", 'https://www.googleapis.com/auth/spreadsheets',
+             "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
+    
+    # Kukunin ang credentials mula sa Render Environment Variables o local file
+    creds_json = os.environ.get("GOOGLE_CREDENTIALS")
+    if creds_json:
+        import json
+        creds_dict = json.loads(creds_json)
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+    else:
+        creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+        
+    client = gspread.authorize(creds)
+    # Pangalan ng iyong Google Sheet
+    sheet = client.open("Mais Con Yelo Pearl Shake").sheet1
+    return sheet
 
-sh = gc.open("PROMO PRODUCT MONITORING")
-
-
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 def index():
-  return render_template("form.html")
-
-
-@app.route("/submit", methods=["POST"])
-def submit():
-  # Kunin ang impormasyon galing sa form
-  report_date_str = request.form.get("report_date")  # Format: YYYY-MM-DD
-  bp_code = request.form.get("bp_code")
-  business_name = request.form.get("business_name")
-  region = request.form.get("region")
-  store_name = request.form.get("store_name")
-  email = request.form.get("email")
-
-  # I-convert ang date para makuha ang Month at Day (naayos na ang format)
-  selected_date = datetime.strptime(report_date_str, "%Y-%m-%d")
-  timestamp = f"{report_date_str} 00:00:00"
-  month_name = selected_date.strftime("%B")
-  day_num = selected_date.strftime("%d").lstrip("0")
-
-  # Mga produkto at ang eksaktong pangalan ng kanilang Tabs/Worksheets sa Google Sheets
-  products = {
-      "Mais Con Yelo": {
-          "BBZ": request.form.get("mais_bbz"),
-          "Regular": request.form.get("mais_reg"),
-          "Grande": request.form.get("mais_grd"),
-      },
-      "Creme Brulee": {
-          "BBZ": request.form.get("creme_bbz"),
-          "Regular": request.form.get("creme_reg"),
-          "Grande": request.form.get("creme_grd"),
-      },
-      "Red_Velvent_Classic": {
-          "BBZ": request.form.get("rvcl_bbz"),
-          "Regular": request.form.get("rvcl_reg"),
-          "Grande": request.form.get("rvcl_grd"),
-      },
-      "Red_Velvent_Crunch": {
-          "BBZ": request.form.get("rvc_bbz"),
-          "Regular": request.form.get("rvc_reg"),
-          "Grande": request.form.get("rvc_grd"),
-      },
-      "Red_Velvent_Cheese_Cake": {
-          "BBZ": request.form.get("rvch_bbz"),
-          "Regular": request.form.get("rvch_reg"),
-          "Grande": request.form.get("rvch_grd"),
-      },
-  }
-
-  # Isa-isang isave ang bawat produkto sa kani-kanilang tab sa Google Sheet
-  for sheet_name, sizes in products.items():
-    worksheet = sh.worksheet(sheet_name)
-
-    row_data = [
-        timestamp,
-        bp_code,
-        bp_code,
-        business_name,
-        region,
-        store_name,
-        sizes["BBZ"],
-        sizes["Regular"],
-        sizes["Grande"],
-        month_name,
-        day_num,
-        email,
-    ]
-
-    # Idagdag ang row nang diretso sa online Google Sheet tab
-    worksheet.append_row(row_data)
-
-  return (
-      "<h3>Report Submitted & Saved Successfully to Google Sheets! <a"
-      " href='/'>Submit Another</a></h3>"
-  )
-
+    if request.method == "POST":
+        unique_code = request.form.get("unique_code", "").strip().upper()
+        month = request.form.get("month")
+        day = request.form.get("day")
+        bbz = request.form.get("bbz", "0")
+        regular = request.form.get("regular", "0")
+        grande = request.form.get("grande", "0")
+        
+        sheet = get_sheet()
+        data = sheet.get_all_records()
+        
+        # Hahanapin sa Google Sheet kung saan tugma ang UNIQUE CODE para makuha ang detalye
+        bp_code = ""
+        business_name = ""
+        region = ""
+        store_name = ""
+        email = ""
+        
+        for row in data:
+            # I-check ang column kung saan nakalagay ang Unique Code (batay sa screenshot mo, ito ay Column B)
+            if str(row.get("Please enter the UNIQUE CODE", "")).strip().upper() == unique_code:
+                bp_code = row.get("BP CODE", "")
+                business_name = row.get("BUSINESS NAME", "")
+                region = row.get("REGION", "")
+                store_name = row.get("STORE NAME", "")
+                email = row.get("Email Address", "")
+                break
+                
+        timestamp = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
+        
+        # Pagkakasunod-sunod ng columns sa iyong Google Sheet:
+        # [Timestamp, UNIQUE CODE, BP CODE, BUSINESS NAME, REGION, STORE NAME, BBZ, REGULAR, GRANDE, MONTH, DAY, Email Address]
+        row_to_insert = [
+            timestamp,
+            unique_code,
+            bp_code,
+            business_name,
+            region,
+            store_name,
+            bbz,
+            regular,
+            grande,
+            month,
+            day,
+            email
+        ]
+        
+        sheet.append_row(row_to_insert)
+        return render_template("form.html", success=True)
+        
+    return render_template("form.html", success=False)
 
 if __name__ == "__main__":
-  app.run(debug=True, port=5000)
+    app.run(host="0.0.0.0", port=5000, debug=True)
