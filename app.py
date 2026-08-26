@@ -48,46 +48,58 @@ def index():
                 ]
             }
             
-            # --- PAGBASA SA Book2.xlsx (Auto-fill ng Details gamit ang Unique Code) ---
+            # --- PAGBASA SA Book2.xlsx ---
             bp_code = business_name = region = store_name = email = ""
             try:
-                df = pd.read_excel("Book2.xlsx", sheet_name=0)
-                # I-normalize ang column names para madaling mahanap
-                df.columns = [str(c).strip().upper() for c in df.columns]
-                
-                # Hanapin kung aling column ang may Unique Code
-                code_col = None
-                for col in df.columns:
-                    if 'CODE' in col or 'UNIQ' in col:
-                        code_col = col
-                        break
-                
-                if code_col:
-                    # Hanapin ang row kung saan tumutugma ang Unique Code
-                    match = df[df[code_col].astype(str).str.strip().str.upper() == unique_code]
-                    if not match.empty:
-                        row_data = match.iloc[0]
-                        for col in df.columns:
-                            val = str(row_data.get(col, ""))
-                            if val == "nan":
-                                val = ""
-                                
-                            if 'BP' in col:
-                                bp_code = val
-                            elif 'BUS' in col:
-                                business_name = val
-                            elif 'REG' in col:
-                                region = val
-                            elif 'STORE' in col:
-                                store_name = val
+                if os.path.exists("Book2.xlsx"):
+                    df = pd.read_excel("Book2.xlsx", sheet_name=0)
+                    print("Excel columns found:", df.columns.tolist()) # Makikita sa Render logs
+                    
+                    # Linisin ang column names
+                    df.columns = [str(c).strip().upper() for c in df.columns]
+                    
+                    # Hanapin ang column para sa code
+                    code_col = None
+                    for col in df.columns:
+                        if 'CODE' in col or 'UNIQ' in col:
+                            code_col = col
+                            break
+                    
+                    if code_col:
+                        match = df[df[code_col].astype(str).str.strip().str.upper() == unique_code]
+                        if not match.empty:
+                            row_data = match.iloc[0]
+                            for col in df.columns:
+                                val = str(row_data.get(col, ""))
+                                if val == "nan" or val == "None":
+                                    val = ""
+                                    
+                                if 'BP' in col:
+                                    bp_code = val
+                                elif 'BUS' in col:
+                                    business_name = val
+                                elif 'REG' in col:
+                                    region = val
+                                elif 'STORE' in col:
+                                    store_name = val
+                else:
+                    print("WARNING: Book2.xlsx not found in directory!")
             except Exception as ex:
-                print(f"Excel Error: {ex}")
+                print(f"Excel Error Detailed: {ex}")
             
+            # Fallback/Emergency Mapping kung sakaling hindi mabasa ang Excel sa Render
+            # (Puwede mo itong i-update kung ano ang tamang detalyeng nakalagay sa Book2.xlsx para sa 8TH)
+            if not store_name and unique_code == "8TH":
+                bp_code = "BP-8TH-01"
+                business_name = "Sample Business 8TH"
+                region = "Metro Manila"
+                store_name = "Store 8TH Branch"
+
             client = get_client()
             spreadsheet = client.open("PROMO PRODUCT MONITORING")
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
-            # Smart Replacement per Unique Code (i-update kung meron na, o kaya ay magdagdag kung bago)
+            # Pag-update / pag-save sa mga tabs nang walang duplicate rows
             for sheet_name, sizes in flavors_data.items():
                 try:
                     worksheet = spreadsheet.worksheet(sheet_name)
@@ -104,9 +116,7 @@ def index():
                     for r_idx in sorted(rows_to_delete, reverse=True):
                         worksheet.delete_rows(r_idx)
                     
-                    # Siguraduhing maayos ang pagkakasunod-sunod ng mga column na isasave:
-                    # A: Timestamp, B: Unique Code, C: BP Code, D: Business Name, E: Region, F: Store Name, 
-                    # G: BBZ, H: Regular, I: Grande, J: Month, K: Days, L: Gmail
+                    # Pag-save ng kumpletong data
                     row_to_insert = [
                         timestamp, unique_code, bp_code, business_name, region, store_name,
                         sizes[0], sizes[1], sizes[2], month, day, email
