@@ -27,8 +27,8 @@ def index():
     if request.method == "POST":
         try:
             unique_code = request.form.get("unique_code", "").strip().upper()
-            month = request.form.get("month", "")
-            day = request.form.get("day", "")
+            month = request.form.get("month", "").strip()
+            day = request.form.get("day", "").strip()
             
             flavors_data = {
                 "Mais Con Yelo": [
@@ -48,15 +48,12 @@ def index():
                 ]
             }
             
-            # --- PAGBASA SA Book2.xlsx (Kasama ang 'Uniqe' spelling) ---
+            # --- PAGBASA SA Book2.xlsx (Auto-fill ng Details) ---
             bp_code = business_name = region = store_name = email = ""
             try:
                 df = pd.read_excel("Book2.xlsx", sheet_name=0)
-                # I-normalize ang column names (alisin ang spaces at gawing uppercase)
-                original_columns = df.columns
                 df.columns = [str(c).strip().upper() for c in df.columns]
                 
-                # Hanapin ang column na tumutugma sa code (uniq, code, etc.)
                 code_col = None
                 for col in df.columns:
                     if 'CODE' in col or 'UNIQ' in col:
@@ -67,8 +64,6 @@ def index():
                     match = df[df[code_col].astype(str).str.strip().str.upper() == unique_code]
                     if not match.empty:
                         row_data = match.iloc[0]
-                        
-                        # Kunin ang mga detalye gamit ang orihinal o modified column names
                         for col in df.columns:
                             val = str(row_data.get(col, ""))
                             if val == "nan":
@@ -89,22 +84,31 @@ def index():
             spreadsheet = client.open("PROMO PRODUCT MONITORING")
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
-            # I-save sa bawat tab at burahin ang lumang duplicate record kung meron man
+            # Para sa bawat flavor tab, i-check kung meron nang parehong Unique Code + Month + Day
             for sheet_name, sizes in flavors_data.items():
                 try:
                     worksheet = spreadsheet.worksheet(sheet_name)
-                    all_records = worksheet.get_all_records()
+                    all_records = worksheet.get_all_values()
+                    
+                    # Hanapin kung may existing row na kapareho ang Unique Code (Col B), Month (Col J), Day (Col K)
                     row_to_delete = None
+                    if len(all_records) > 1:
+                        for idx, row in enumerate(all_records[1:], start=2):
+                            # row[1] = Unique Code, row[9] = Month, row[10] = Day
+                            if len(row) > 10:
+                                existing_code = str(row[1]).strip().upper()
+                                existing_month = str(row[9]).strip()
+                                existing_day = str(row[10]).strip()
+                                
+                                if existing_code == unique_code and existing_month == month and existing_day == day:
+                                    row_to_delete = idx
+                                    break
                     
-                    for idx, record in enumerate(all_records):
-                        existing_code = str(record.get("UNIQUE CODE", record.get("Unique Code", ""))).strip().upper()
-                        if existing_code == unique_code:
-                            row_to_delete = idx + 2
-                            break
-                    
+                    # Kung nakita ang luma para sa parehong araw at store, burahin muna bago ilagay ang bago
                     if row_to_delete:
                         worksheet.delete_rows(row_to_delete)
                     
+                    # Idagdag ang bagong row
                     row_to_insert = [
                         timestamp, unique_code, bp_code, business_name, region, store_name,
                         sizes[0], sizes[1], sizes[2], month, day, email
