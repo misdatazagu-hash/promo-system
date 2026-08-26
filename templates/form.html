@@ -4,116 +4,175 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zagu Promo 5 Flavors Entry</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
-        h2 { text-align: center; color: #333; margin-bottom: 25px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; font-size: 14px; }
-        input[type="text"], select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 14px; }
-        button { width: 100%; background-color: #28a745; color: white; padding: 15px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 20px; font-weight: bold; }
-        button:hover { background-color: #218838; }
-        .alert { background-color: #d4edda; color: #155724; padding: 15px; border-radius: 5px; text-align: center; margin-bottom: 20px; font-weight: bold; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body { background: #f0f4f1; padding: 20px; color: #333; }
+        .container { max-width: 850px; margin: 0 auto; background: #fff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid #e2e8f0; }
+        .header { background: #fff; padding: 25px 20px; text-align: center; border-bottom: 1px solid #edf2f7; position: relative; }
+        .header img.logo { height: 40px; margin-bottom: 10px; }
+        .header h1 { font-size: 24px; color: #1b4332; font-weight: 700; }
+        .header p { font-size: 14px; color: #64748b; margin-top: 5px; }
         
-        .flavor-section { background: #fdfdfd; border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 15px; border-radius: 8px; }
-        .flavor-section h3 { margin-top: 0; margin-bottom: 10px; color: #2c3e50; font-size: 16px; border-bottom: 2px solid #eee; padding-bottom: 8px; }
-        .sizes-row { display: flex; gap: 10px; }
-        .size-col { flex: 1; }
-        .size-col label { font-size: 12px; font-weight: bold; color: #666; text-align: center; margin-bottom: 3px; }
-        .size-col input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; text-align: center; font-size: 14px; }
+        .alert-success { background: #d1fae5; color: #065f46; padding: 12px; text-align: center; font-size: 14px; font-weight: 500; border-bottom: 1px solid #a7f3d0; }
+        
+        .form-section { padding: 30px; }
+        .top-inputs { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        @media(max-width: 768px) { .top-inputs { grid-template-columns: 1fr; } }
+        
+        .input-group { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px; padding: 12px 15px; }
+        .input-group label { display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 5px; text-transform: uppercase; }
+        .input-group input, .input-group select { width: 100%; border: none; background: transparent; font-size: 14px; outline: none; color: #1e293b; }
+        
+        .flavor-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px 20px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        @media(max-width: 768px) { .flavor-card { flex-direction: column; align-items: flex-start; gap: 10px; } }
+        
+        .flavor-info { display: flex; align-items: center; gap: 15px; width: 250px; }
+        .flavor-badge { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px; flex-shrink: 0; }
+        .flavor-name { font-weight: 600; font-size: 15px; color: #1e293b; }
+        
+        .flavor-inputs { display: flex; gap: 15px; width: 100%; justify-content: flex-end; }
+        @media(max-width: 768px) { .flavor-inputs { justify-content: space-between; } }
+        
+        .cup-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; width: 110px; }
+        .cup-box label { display: block; font-size: 10px; color: #64748b; font-weight: 500; margin-bottom: 3px; }
+        .cup-box input { width: 100%; border: none; background: transparent; font-size: 14px; font-weight: 600; outline: none; text-align: center; }
+        
+        /* Flavor Colors */
+        .f-1 .flavor-badge { background: #16a34a; }
+        .f-2 .flavor-badge { background: #d97706; }
+        .f-3 .flavor-badge { background: #dc2626; }
+        .f-4 .flavor-badge { background: #7c3aed; }
+        .f-5 .flavor-badge { background: #2563eb; }
+        
+        .btn-submit { background: #15803d; color: white; border: none; width: 100%; padding: 15px; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 20px; transition: background 0.2s; }
+        .btn-submit:hover { background: #166534; }
+        
+        .footer-note { text-align: center; font-size: 12px; color: #64748b; margin-top: 15px; }
     </style>
 </head>
 <body>
+
     <div class="container">
-        <h2>Zagu Promo 5 Flavors Entry</h2>
-        
+        <div class="header">
+            <!-- Pwede mong palitan ang src ng logo kung mayroon kang saktong image URL -->
+            <img src="https://i.ibb.co/30L773r/zagu-logo.png" alt="Zagu Logo" class="logo" onerror="this.style.display='none'">
+            <h1>Zagu Promo 5 Flavors Entry</h1>
+            <p>Enter daily sales for all 5 promo flavors.</p>
+        </div>
+
         {% if success %}
-            <div class="alert">Successfully Submitted! Pwede ka nang mag-submit ng panibago.</div>
+        <div class="alert-success">
+            ✅ Successfully submitted! Pwede ka nang mag-submit ng panibago.
+        </div>
         {% endif %}
 
-        <form method="POST">
-            <div class="form-group">
-                <label for="unique_code">Please enter the UNIQUE CODE * (Ex. ZAGU or ZAGU01)</label>
-                <input type="text" id="unique_code" name="unique_code" required placeholder="Enter unique code">
-            </div>
-
-            <div class="form-group">
-                <label for="month">MONTH *</label>
-                <select id="month" name="month" required>
-                    <option value="">Select Month</option>
-                    <option value="January">January</option>
-                    <option value="February">February</option>
-                    <option value="March">March</option>
-                    <option value="April">April</option>
-                    <option value="May">May</option>
-                    <option value="June">June</option>
-                    <option value="July">July</option>
-                    <option value="August">August</option>
-                    <option value="September">September</option>
-                    <option value="October">October</option>
-                    <option value="November">November</option>
-                    <option value="December">December</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="day">DAY *</label>
-                <select id="day" name="day" required>
-                    <option value="">Select Day</option>
-                    {% for d in range(1, 32) %}
+        <form method="POST" class="form-section">
+            
+            <!-- Top Bar: Unique Code, Month, Day -->
+            <div class="top-inputs">
+                <div class="input-group">
+                    <label>UNIQUE CODE *</label>
+                    <input type="text" name="unique_code" placeholder="Ex. ZAGU or ZAGU01" required value="{{ request.form.get('unique_code', '') }}">
+                </div>
+                <div class="input-group">
+                    <label>MONTH *</label>
+                    <select name="month" required>
+                        <option value="" disabled selected>Select Month</option>
+                        <option value="January">January</option>
+                        <option value="February">February</option>
+                        <option value="March">March</option>
+                        <option value="April">April</option>
+                        <option value="May">May</option>
+                        <option value="June">June</option>
+                        <option value="July">July</option>
+                        <option value="August" selected>August</option>
+                        <option value="September">September</option>
+                        <option value="October">October</option>
+                        <option value="November">November</option>
+                        <option value="December">December</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>DAY *</label>
+                    <select name="day" required>
+                        <option value="" disabled selected>Select Day</option>
+                        {% for d in range(1, 32) %}
                         <option value="{{ d }}">{{ d }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Flavor Sections -->
-            <div class="flavor-section">
-                <h3>1. Mais Con Yelo</h3>
-                <div class="sizes-row">
-                    <div class="size-col"><label>BBZ Cup</label><input type="number" name="mcy_bbz" value="0" min="0" required></div>
-                    <div class="size-col"><label>Regular Cup</label><input type="number" name="mcy_reg" value="0" min="0" required></div>
-                    <div class="size-col"><label>Grande Cup</label><input type="number" name="mcy_grande" value="0" min="0" required></div>
+                        {% endfor %}
+                    </select>
                 </div>
             </div>
 
-            <div class="flavor-section">
-                <h3>2. Creme Brulee</h3>
-                <div class="sizes-row">
-                    <div class="size-col"><label>BBZ Cup</label><input type="number" name="cb_bbz" value="0" min="0" required></div>
-                    <div class="size-col"><label>Regular Cup</label><input type="number" name="cb_reg" value="0" min="0" required></div>
-                    <div class="size-col"><label>Grande Cup</label><input type="number" name="cb_grande" value="0" min="0" required></div>
+            <!-- 1. Mais Con Yelo -->
+            <div class="flavor-card f-1">
+                <div class="flavor-info">
+                    <div class="flavor-badge">1</div>
+                    <div class="flavor-name">Mais Con Yelo</div>
+                </div>
+                <div class="flavor-inputs">
+                    <div class="cup-box"><label>Baby Z Cup</label><input type="number" name="mcy_bbz" value="0" min="0"></div>
+                    <div class="cup-box"><label>Regular Cup</label><input type="number" name="mcy_reg" value="0" min="0"></div>
+                    <div class="cup-box"><label>Grande Cup</label><input type="number" name="mcy_grande" value="0" min="0"></div>
                 </div>
             </div>
 
-            <div class="flavor-section">
-                <h3>3. Red Velvet Classic</h3>
-                <div class="sizes-row">
-                    <div class="size-col"><label>BBZ Cup</label><input type="number" name="rvc_bbz" value="0" min="0" required></div>
-                    <div class="size-col"><label>Regular Cup</label><input type="number" name="rvc_reg" value="0" min="0" required></div>
-                    <div class="size-col"><label>Grande Cup</label><input type="number" name="rvc_grande" value="0" min="0" required></div>
+            <!-- 2. Creme Brulee -->
+            <div class="flavor-card f-2">
+                <div class="flavor-info">
+                    <div class="flavor-badge">2</div>
+                    <div class="flavor-name">Creme Brulee</div>
+                </div>
+                <div class="flavor-inputs">
+                    <div class="cup-box"><label>Baby Z Cup</label><input type="number" name="cb_bbz" value="0" min="0"></div>
+                    <div class="cup-box"><label>Regular Cup</label><input type="number" name="cb_reg" value="0" min="0"></div>
+                    <div class="cup-box"><label>Grande Cup</label><input type="number" name="cb_grande" value="0" min="0"></div>
                 </div>
             </div>
 
-            <div class="flavor-section">
-                <h3>4. Red Velvet Crunch</h3>
-                <div class="sizes-row">
-                    <div class="size-col"><label>BBZ Cup</label><input type="number" name="rvcr_bbz" value="0" min="0" required></div>
-                    <div class="size-col"><label>Regular Cup</label><input type="number" name="rvcr_reg" value="0" min="0" required></div>
-                    <div class="size-col"><label>Grande Cup</label><input type="number" name="rvcr_grande" value="0" min="0" required></div>
+            <!-- 3. Red Velvet Classic -->
+            <div class="flavor-card f-3">
+                <div class="flavor-info">
+                    <div class="flavor-badge">3</div>
+                    <div class="flavor-name">Red Velvet Classic</div>
+                </div>
+                <div class="flavor-inputs">
+                    <div class="cup-box"><label>Baby Z Cup</label><input type="number" name="rvc_bbz" value="0" min="0"></div>
+                    <div class="cup-box"><label>Regular Cup</label><input type="number" name="rvc_reg" value="0" min="0"></div>
+                    <div class="cup-box"><label>Grande Cup</label><input type="number" name="rvc_grande" value="0" min="0"></div>
                 </div>
             </div>
 
-            <div class="flavor-section">
-                <h3>5. Red Velvet Cheesecake</h3>
-                <div class="sizes-row">
-                    <div class="size-col"><label>BBZ Cup</label><input type="number" name="rvcc_bbz" value="0" min="0" required></div>
-                    <div class="size-col"><label>Regular Cup</label><input type="number" name="rvcc_reg" value="0" min="0" required></div>
-                    <div class="size-col"><label>Grande Cup</label><input type="number" name="rvcc_grande" value="0" min="0" required></div>
+            <!-- 4. Red Velvet Crunch -->
+            <div class="flavor-card f-4">
+                <div class="flavor-info">
+                    <div class="flavor-badge">4</div>
+                    <div class="flavor-name">Red Velvet Crunch</div>
+                </div>
+                <div class="flavor-inputs">
+                    <div class="cup-box"><label>Baby Z Cup</label><input type="number" name="rvcr_bbz" value="0" min="0"></div>
+                    <div class="cup-box"><label>Regular Cup</label><input type="number" name="rvcr_reg" value="0" min="0"></div>
+                    <div class="cup-box"><label>Grande Cup</label><input type="number" name="rvcr_grande" value="0" min="0"></div>
                 </div>
             </div>
 
-            <button type="submit">Submit All Data</button>
+            <!-- 5. Red Velvet Cheesecake -->
+            <div class="flavor-card f-5">
+                <div class="flavor-info">
+                    <div class="flavor-badge">5</div>
+                    <div class="flavor-name">Red Velvet Cheesecake</div>
+                </div>
+                <div class="flavor-inputs">
+                    <div class="cup-box"><label>Baby Z Cup</label><input type="number" name="rvcc_bbz" value="0" min="0"></div>
+                    <div class="cup-box"><label>Regular Cup</label><input type="number" name="rvcc_reg" value="0" min="0"></div>
+                    <div class="cup-box"><label>Grande Cup</label><input type="number" name="rvcc_grande" value="0" min="0"></div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">🚀 Submit All Data</button>
+            <div class="footer-note">Your data is secure and will be recorded safely.</div>
         </form>
     </div>
+
 </body>
 </html>
