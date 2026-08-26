@@ -28,6 +28,7 @@ def index():
             month = request.form.get("month")
             day = request.form.get("day")
             
+            # Mga flavors at kaukulang tab names (Siguraduhing sakto sa pangalan ng tabs sa Google Sheet mo)
             flavors_data = {
                 "Mais Con Yelo": [
                     request.form.get("mcy_bbz", "0"), request.form.get("mcy_reg", "0"), request.form.get("mcy_grande", "0")
@@ -49,31 +50,32 @@ def index():
             client = get_client()
             spreadsheet = client.open("PROMO PRODUCT MONITORING")
             
-            # Kunin ang details mula sa unang tab (Master list ng codes)
-            base_sheet = spreadsheet.get_worksheet(0)
-            base_records = base_sheet.get_all_records()
-            
             bp_code = business_name = region = store_name = email = ""
             
-            for row in base_records:
-                # Sinusubukang hanapin ang unique code sa iba't ibang posibleng pangalan ng column
-                code_val = str(
-                    row.get("Please enter the UNIQUE CODE", 
-                    row.get("Please enter the UNIQUE CODE * (Ex. ZAGU or ZAGU01)", 
-                    row.get("Uniqe CODE", "")))
-                ).strip().upper()
-                
-                if code_val == unique_code:
-                    bp_code = row.get("BP CODE", "")
-                    business_name = row.get("BUSINESS NAME", "")
-                    region = row.get("REGION", "")
-                    store_name = row.get("STORE NAME", "")
-                    email = row.get("Email Address", "")
-                    break
+            # Subukang basahin ang master list mula sa unang tab o sa tab na naglalaman ng 'Uniqe CODE'
+            try:
+                base_sheet = spreadsheet.get_worksheet(0)
+                base_records = base_sheet.get_all_records()
+                for row in base_records:
+                    code_val = str(
+                        row.get("Please enter the UNIQUE CODE", 
+                        row.get("Uniqe CODE", 
+                        row.get("Unique Code", "")))
+                    ).strip().upper()
+                    
+                    if code_val and code_val == unique_code:
+                        bp_code = str(row.get("BP CODE", ""))
+                        business_name = str(row.get("BUSINESS NAME", ""))
+                        region = str(row.get("REGION", ""))
+                        store_name = str(row.get("STORE NAME", ""))
+                        email = str(row.get("Email Address", ""))
+                        break
+            except Exception as master_err:
+                print(f"Babala sa pagbasa ng master list: {master_err}")
                     
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
-            # I-save sa kani-kaniyang tabs
+            # I-save sa bawat tab ng flavors
             for sheet_name, sizes in flavors_data.items():
                 try:
                     worksheet = spreadsheet.worksheet(sheet_name)
@@ -83,12 +85,12 @@ def index():
                     ]
                     worksheet.append_row(row_to_insert)
                 except Exception as ex:
-                    print(f"Error sa tab na {sheet_name}: {ex}")
+                    print(f"Error sa pagpasok sa tab na {sheet_name}: {ex}")
             
             return render_template("form.html", success=True)
             
         except Exception as e:
-            print(f"General Error: {e}")
+            print(f"General Error sa pag-submit: {e}")
             return render_template("form.html", success=False)
             
     return render_template("form.html", success=False)
