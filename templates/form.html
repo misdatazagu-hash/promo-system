@@ -11,7 +11,7 @@
         .container { max-width: 850px; margin: 0 auto; background: #fff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid #e2e8f0; padding: 30px; }
         
         .header { text-align: center; margin-bottom: 25px; }
-        .header img.logo { height: 45px; margin-bottom: 10px; }
+        .header img.logo { height: 45px; margin-bottom: 10px; object-fit: contain; }
         .header h1 { font-size: 24px; color: #1b4332; font-weight: 700; }
         .header p { font-size: 14px; color: #64748b; margin-top: 5px; }
         
@@ -24,19 +24,20 @@
         .input-group label { display: block; font-size: 11px; font-weight: 600; color: #475569; margin-bottom: 5px; text-transform: uppercase; }
         .input-group input, .input-group select { width: 100%; border: none; background: transparent; font-size: 14px; outline: none; color: #1e293b; }
         
-        .flavor-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px 20px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        @media(max-width: 768px) { .flavor-card { flex-direction: column; align-items: flex-start; gap: 10px; } }
+        .flavor-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px 20px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.02); position: relative; }
+        @media(max-width: 768px) { .flavor-card { flex-direction: column; align-items: flex-start; gap: 15px; padding-top: 50px; } }
         
         .flavor-info { display: flex; align-items: center; gap: 15px; width: 250px; }
         .flavor-badge { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px; flex-shrink: 0; }
         .flavor-name { font-weight: 600; font-size: 15px; color: #1e293b; }
         
         .flavor-inputs { display: flex; gap: 15px; width: 100%; justify-content: flex-end; }
-        @media(max-width: 768px) { .flavor-inputs { justify-content: space-between; } }
+        @media(max-width: 768px) { .flavor-inputs { justify-content: space-between; width: 100%; } }
         
-        .cup-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; width: 110px; }
+        .cup-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; width: 110px; position: relative; padding-left: 35px; }
         .cup-box label { display: block; font-size: 10px; color: #64748b; font-weight: 500; margin-bottom: 3px; }
         .cup-box input { width: 100%; border: none; background: transparent; font-size: 14px; font-weight: 600; outline: none; text-align: center; }
+        .cup-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); height: 18px; width: 18px; object-fit: contain; opacity: 0.7; }
         
         /* Flavor Colors & Borders */
         .f-1 { border-left: 5px solid #16a34a; } .f-1 .flavor-badge { background: #16a34a; }
@@ -45,8 +46,9 @@
         .f-4 { border-left: 5px solid #7c3aed; } .f-4 .flavor-badge { background: #7c3aed; }
         .f-5 { border-left: 5px solid #2563eb; } .f-5 .flavor-badge { background: #2563eb; }
         
-        .btn-submit { background: #15803d; color: white; border: none; width: 100%; padding: 15px; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 20px; transition: background 0.2s; }
+        .btn-submit { background: #15803d; color: white; border: none; width: 100%; padding: 15px; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 20px; transition: background 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-submit:hover { background: #166534; }
+        .rocket-icon { height: 20px; width: 20px; }
         
         .footer-note { text-align: center; font-size: 12px; color: #64748b; margin-top: 15px; }
     </style>
@@ -55,7 +57,8 @@
 
     <div class="container">
         <div class="header">
-            <img src="https://i.ibb.co/30L773r/zagu-logo.png" alt="Zagu Logo" class="logo" onerror="this.style.display='none'">
+            <!-- Zagu Logo -->
+            <img src="https://i.ibb.co/PZ0F0p7/zagu-logo-green.png" alt="Zagu Logo" class="logo" onerror="this.style.display='none'">
             <h1>Zagu Promo 5 Flavors Entry</h1>
             <p>Enter daily sales for all 5 promo flavors.</p>
         </div>
@@ -110,9 +113,9 @@
                     <div class="flavor-name">Mais Con Yelo</div>
                 </div>
                 <div class="flavor-inputs">
-                    <div class="cup-box"><label>Baby Z Cup</label><input type="number" name="mcy_bbz" value="0" min="0"></div>
-                    <div class="cup-box"><label>Regular Cup</label><input type="number" name="mcy_reg" value="0" min="0"></div>
-                    <div class="cup-box"><label>Grande Cup</label><input type="number" name="mcy_grande" value="0" min="0"></div>
+                    <div class="cup-box"><img src="https://i.ibb.co/XtxV738/cup-green.png" alt="Cup" class="cup-icon"><label>Baby Z Cup</label><input type="number" name="mcy_bbz" value="0" min="0"></div>
+                    <div class="cup-box"><img src="https://i.ibb.co/XtxV738/cup-green.png" alt="Cup" class="cup-icon"><label>Regular Cup</label><input type="number" name="mcy_reg" value="0" min="0"></div>
+                    <div class="cup-box"><img src="https://i.ibb.co/XtxV738/cup-green.png" alt="Cup" class="cup-icon"><label>Grande Cup</label><input type="number" name="mcy_grande" value="0" min="0"></div>
                 </div>
             </div>
 
@@ -123,9 +126,9 @@
                     <div class="flavor-name">Creme Brulee</div>
                 </div>
                 <div class="flavor-inputs">
-                    <div class="cup-box"><label>Baby Z Cup</label><input type="number" name="cb_bbz" value="0" min="0"></div>
-                    <div class="cup-box"><label>Regular Cup</label><input type="number" name="cb_reg" value="0" min="0"></div>
-                    <div class="cup-box"><label>Grande Cup</label><input type="number" name="cb_grande" value="0" min="0"></div>
+                    <div class="cup-box"><img src="https://i.ibb.co/hH0d0kS/cup-orange.png" alt="Cup" class="cup-icon"><label>Baby Z Cup</label><input type="number" name="cb_bbz" value="0" min="0"></div>
+                    <div class="cup-box"><img src="https://i.ibb.co/hH0d0kS/cup-orange.png" alt="Cup" class="cup-icon"><label>Regular Cup</label><input type="number" name="cb_reg" value="0" min="0"></div>
+                    <div class="cup-box"><img src="https://i.ibb.co/hH0d0kS/cup-orange.png" alt="Cup" class="cup-icon"><label>Grande Cup</label><input type="number" name="cb_grande" value="0" min="0"></div>
                 </div>
             </div>
 
@@ -136,9 +139,9 @@
                     <div class="flavor-name">Red Velvet Classic</div>
                 </div>
                 <div class="flavor-inputs">
-                    <div class="cup-box"><label>Baby Z Cup</label><input type="number" name="rvc_bbz" value="0" min="0"></div>
-                    <div class="cup-box"><label>Regular Cup</label><input type="number" name="rvc_reg" value="0" min="0"></div>
-                    <div class="cup-box"><label>Grande Cup</label><input type="number" name="rvc_grande" value="0" min="0"></div>
+                    <div class="cup-box"><img src="https://i.ibb.co/7NqY3b8/cup-red.png" alt="Cup" class="cup-icon"><label>Baby Z Cup</label><input type="number" name="rvc_bbz" value="0" min="0"></div>
+                    <div class="cup-box"><img src="https://i.ibb.co/7NqY3b8/cup-red.png" alt="Cup" class="cup-icon"><label>Regular Cup</label><input type="number" name="rvc_reg" value="0" min="0"></div>
+                    <div class="cup-box"><img src="https://i.ibb.co/7NqY3b8/cup-red.png" alt="Cup" class="cup-icon"><label>Grande Cup</label><input type="number" name="rvc_grande" value="0" min="0"></div>
                 </div>
             </div>
 
@@ -149,9 +152,9 @@
                     <div class="flavor-name">Red Velvet Crunch</div>
                 </div>
                 <div class="flavor-inputs">
-                    <div class="cup-box"><label>Baby Z Cup</label><input type="number" name="rvcr_bbz" value="0" min="0"></div>
-                    <div class="cup-box"><label>Regular Cup</label><input type="number" name="rvcr_reg" value="0" min="0"></div>
-                    <div class="cup-box"><label>Grande Cup</label><input type="number" name="rvcr_grande" value="0" min="0"></div>
+                    <div class="cup-box"><img src="https://i.ibb.co/y48j9Kk/cup-purple.png" alt="Cup" class="cup-icon"><label>Baby Z Cup</label><input type="number" name="rvcr_bbz" value="0" min="0"></div>
+                    <div class="cup-box"><img src="https://i.ibb.co/y48j9Kk/cup-purple.png" alt="Cup" class="cup-icon"><label>Regular Cup</label><input type="number" name="rvcr_reg" value="0" min="0"></div>
+                    <div class="cup-box"><img src="https://i.ibb.co/y48j9Kk/cup-purple.png" alt="Cup" class="cup-icon"><label>Grande Cup</label><input type="number" name="rvcr_grande" value="0" min="0"></div>
                 </div>
             </div>
 
@@ -162,13 +165,16 @@
                     <div class="flavor-name">Red Velvet Cheesecake</div>
                 </div>
                 <div class="flavor-inputs">
-                    <div class="cup-box"><label>Baby Z Cup</label><input type="number" name="rvcc_bbz" value="0" min="0"></div>
-                    <div class="cup-box"><label>Regular Cup</label><input type="number" name="rvcc_reg" value="0" min="0"></div>
-                    <div class="cup-box"><label>Grande Cup</label><input type="number" name="rvcc_grande" value="0" min="0"></div>
+                    <div class="cup-box"><img src="https://i.ibb.co/18W3Wwz/cup-blue.png" alt="Cup" class="cup-icon"><label>Baby Z Cup</label><input type="number" name="rvcc_bbz" value="0" min="0"></div>
+                    <div class="cup-box"><img src="https://i.ibb.co/18W3Wwz/cup-blue.png" alt="Cup" class="cup-icon"><label>Regular Cup</label><input type="number" name="rvcc_reg" value="0" min="0"></div>
+                    <div class="cup-box"><img src="https://i.ibb.co/18W3Wwz/cup-blue.png" alt="Cup" class="cup-icon"><label>Grande Cup</label><input type="number" name="rvcc_grande" value="0" min="0"></div>
                 </div>
             </div>
 
-            <button type="submit" class="btn-submit">🚀 Submit All Data</button>
+            <button type="submit" class="btn-submit">
+                <img src="https://i.ibb.co/5c7m1tW/rocket-icon.png" alt="Rocket" class="rocket-icon">
+                Submit All Data
+            </button>
             <div class="footer-note">Your data is secure and will be recorded safely.</div>
         </form>
     </div>
