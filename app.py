@@ -48,12 +48,14 @@ def index():
                 ]
             }
             
-            # --- PAGBASA SA Book2.xlsx (Auto-fill ng Details) ---
+            # --- PAGBASA SA Book2.xlsx (Auto-fill ng Details gamit ang Unique Code) ---
             bp_code = business_name = region = store_name = email = ""
             try:
                 df = pd.read_excel("Book2.xlsx", sheet_name=0)
+                # I-normalize ang column names para madaling mahanap
                 df.columns = [str(c).strip().upper() for c in df.columns]
                 
+                # Hanapin kung aling column ang may Unique Code
                 code_col = None
                 for col in df.columns:
                     if 'CODE' in col or 'UNIQ' in col:
@@ -61,6 +63,7 @@ def index():
                         break
                 
                 if code_col:
+                    # Hanapin ang row kung saan tumutugma ang Unique Code
                     match = df[df[code_col].astype(str).str.strip().str.upper() == unique_code]
                     if not match.empty:
                         row_data = match.iloc[0]
@@ -71,9 +74,9 @@ def index():
                                 
                             if 'BP' in col:
                                 bp_code = val
-                            elif 'BUSINESS' in col:
+                            elif 'BUS' in col:
                                 business_name = val
-                            elif 'REGION' in col:
+                            elif 'REG' in col:
                                 region = val
                             elif 'STORE' in col:
                                 store_name = val
@@ -84,31 +87,26 @@ def index():
             spreadsheet = client.open("PROMO PRODUCT MONITORING")
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
-            # Para sa bawat flavor tab, i-check kung meron nang parehong Unique Code + Month + Day
+            # Smart Replacement per Unique Code (i-update kung meron na, o kaya ay magdagdag kung bago)
             for sheet_name, sizes in flavors_data.items():
                 try:
                     worksheet = spreadsheet.worksheet(sheet_name)
                     all_records = worksheet.get_all_values()
                     
-                    # Hanapin kung may existing row na kapareho ang Unique Code (Col B), Month (Col J), Day (Col K)
-                    row_to_delete = None
+                    rows_to_delete = []
                     if len(all_records) > 1:
                         for idx, row in enumerate(all_records[1:], start=2):
-                            # row[1] = Unique Code, row[9] = Month, row[10] = Day
-                            if len(row) > 10:
+                            if len(row) > 1:
                                 existing_code = str(row[1]).strip().upper()
-                                existing_month = str(row[9]).strip()
-                                existing_day = str(row[10]).strip()
-                                
-                                if existing_code == unique_code and existing_month == month and existing_day == day:
-                                    row_to_delete = idx
-                                    break
+                                if existing_code == unique_code:
+                                    rows_to_delete.append(idx)
                     
-                    # Kung nakita ang luma para sa parehong araw at store, burahin muna bago ilagay ang bago
-                    if row_to_delete:
-                        worksheet.delete_rows(row_to_delete)
+                    for r_idx in sorted(rows_to_delete, reverse=True):
+                        worksheet.delete_rows(r_idx)
                     
-                    # Idagdag ang bagong row
+                    # Siguraduhing maayos ang pagkakasunod-sunod ng mga column na isasave:
+                    # A: Timestamp, B: Unique Code, C: BP Code, D: Business Name, E: Region, F: Store Name, 
+                    # G: BBZ, H: Regular, I: Grande, J: Month, K: Days, L: Gmail
                     row_to_insert = [
                         timestamp, unique_code, bp_code, business_name, region, store_name,
                         sizes[0], sizes[1], sizes[2], month, day, email
