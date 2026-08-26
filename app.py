@@ -48,19 +48,37 @@ def index():
                 ]
             }
             
-            # Basahin ang Book2.xlsx para sa auto-fill details
+            # --- MAS MATIBAY NA PAGBASA SA Book2.xlsx ---
             bp_code = business_name = region = store_name = email = ""
             try:
                 df = pd.read_excel("Book2.xlsx", sheet_name=0)
-                col_name = [c for c in df.columns if 'uniq' in c.lower() or 'code' in c.lower()]
-                if col_name:
-                    match = df[df[col_name[0]].astype(str).str.strip().str.upper() == unique_code]
+                # Alisin ang spaces sa column names at gawing uppercase para sigurado
+                df.columns = [str(c).strip().upper() for c in df.columns]
+                
+                # Hanapin kung aling column ang may code/unique
+                code_col = None
+                for col in df.columns:
+                    if 'CODE' in col or 'UNIQUE' in col:
+                        code_col = col
+                        break
+                
+                if code_col:
+                    # Hanapin ang row kung saan tumutugma ang unique code
+                    match = df[df[code_col].astype(str).str.strip().str.upper() == unique_code]
                     if not match.empty:
                         row_data = match.iloc[0]
-                        bp_code = str(row_data.get("BP CODE", ""))
-                        business_name = str(row_data.get("BUSINESS NAME", ""))
-                        region = str(row_data.get("REGION", ""))
-                        store_name = str(row_data.get("STORE NAME", ""))
+                        
+                        # Kunin ang mga detalye base sa karaniwang pangalan ng column
+                        for col in df.columns:
+                            val = str(row_data.get(col, ""))
+                            if 'BP' in col:
+                                bp_code = val
+                            elif 'BUSINESS' in col:
+                                business_name = val
+                            elif 'REGION' in col:
+                                region = val
+                            elif 'STORE' in col:
+                                store_name = val
             except Exception as ex:
                 print(f"Excel Error: {ex}")
             
