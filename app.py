@@ -6,7 +6,7 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-def get_sheet():
+def get_client():
     scope = ["https://spreadsheets.google.com/feeds", 'https://www.googleapis.com/auth/spreadsheets',
              "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
     
@@ -18,64 +18,79 @@ def get_sheet():
     else:
         creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
         
-    client = gspread.authorize(creds)
-    # Siguraduhing tugma sa pangalan ng tab o spreadsheet mo (hal. Form_Responses)
-    sheet = client.open("PROMO PRODUCT MONITORING").worksheet("Form_Responses")
-    return sheet
+    return gspread.authorize(creds)
 
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
-        unique_code = request.form.get("unique_code", "").strip().upper()
-        month = request.form.get("month")
-        day = request.form.get("day")
-        bbz = request.form.get("bbz", "0")
-        regular = request.form.get("regular", "0")
-        grande = request.form.get("grande", "0")
-        
-        sheet = get_sheet()
-        data = sheet.get_all_records()
-        
-        bp_code = ""
-        business_name = ""
-        region = ""
-        store_name = ""
-        email = ""
-        
-        # Paghanap ng store details base sa Unique Code mula sa parehong sheet o database
-        for row in data:
-            # Sinisigurado nating match ang unique code column
-            code_val = str(row.get("Please enter the UNIQUE CODE", row.get("Please enter the UNIQUE CODE * (Ex. ZAGU or ZAGU01)", ""))).strip().upper()
-            if code_val == unique_code:
-                bp_code = row.get("BP CODE", "")
-                business_name = row.get("BUSINESS NAME", "")
-                region = row.get("REGION", "")
-                store_name = row.get("STORE NAME", "")
-                email = row.get("Email Address", "")
-                break
+        try:
+            unique_code = request.form.get("unique_code", "").strip().upper()
+            month = request.form.get("month")
+            day = request.form.get("day")
+            
+            flavors_data = {
+                "Mais Con Yelo": [
+                    request.form.get("mcy_bbz", "0"), request.form.get("mcy_reg", "0"), request.form.get("mcy_grande", "0")
+                ],
+                "Creme Brulee": [
+                    request.form.get("cb_bbz", "0"), request.form.get("cb_reg", "0"), request.form.get("cb_grande", "0")
+                ],
+                "Red_Velvent_Classic": [
+                    request.form.get("rvc_bbz", "0"), request.form.get("rvc_reg", "0"), request.form.get("rvc_grande", "0")
+                ],
+                "Red_Velvent_Crunch": [
+                    request.form.get("rvcr_bbz", "0"), request.form.get("rvcr_reg", "0"), request.form.get("rvcr_grande", "0")
+                ],
+                "Red_Velvent_Cheese_Cake": [
+                    request.form.get("rvcc_bbz", "0"), request.form.get("rvcc_reg", "0"), request.form.get("rvcc_grande", "0")
+                ]
+            }
+            
+            client = get_client()
+            spreadsheet = client.open("PROMO PRODUCT MONITORING")
+            
+            # Kunin ang details mula sa unang tab (Master list ng codes)
+            base_sheet = spreadsheet.get_worksheet(0)
+            base_records = base_sheet.get_all_records()
+            
+            bp_code = business_name = region = store_name = email = ""
+            
+            for row in base_records:
+                # Sinusubukang hanapin ang unique code sa iba't ibang posibleng pangalan ng column
+                code_val = str(
+                    row.get("Please enter the UNIQUE CODE", 
+                    row.get("Please enter the UNIQUE CODE * (Ex. ZAGU or ZAGU01)", 
+                    row.get("Uniqe CODE", "")))
+                ).strip().upper()
                 
-        timestamp = datetime.now().strftime("%m/%d/%Y %H:%M:%S")
-        
-        # Eksaktong pagkakasunod-sunod batay sa iyong Google Sheet columns:
-        # [Timestamp, Unique Code, BP Code, Business Name, Region, Store Name, BBZ, Regular, Grande, Month, Day, Email Address]
-        row_to_insert = [
-            timestamp,
-            unique_code,
-            bp_code,
-            business_name,
-            region,
-            store_name,
-            bbz,
-            regular,
-            grande,
-            month,
-            day,
-            email
-        ]
-        
-        sheet.append_row(row_to_insert)
-        return render_template("form.html", success=True)
-        
+                if code_val == unique_code:
+                    bp_code = row.get("BP CODE", "")
+                    business_name = row.get("BUSINESS NAME", "")
+                    region = row.get("REGION", "")
+                    store_name = row.get("STORE NAME", "")
+                    email = row.get("Email Address", "")
+                    break
+                    
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            
+            # I-save sa kani-kaniyang tabs
+            for sheet_name, sizes in flavors_data.items():
+                try:
+                    worksheet = spreadsheet.worksheet(sheet_name)
+                    row_to_insert = [
+                        timestamp, unique_code, bp_code, business_name, region, store_name,
+                        sizes[0], sizes[1], sizes[2], month, day, email
+                    ]
+                    worksheet.append_row(row_to_insert)
+                except Exception as ex:
+                    print(f"Error sa tab na {sheet_name}: {ex}")
+            
+            return render_template("form.html", success=True)
+            
+        except Exception as e:
+            print(f"General Error: {e}")
+            return render_template("form.html", success=False)
+            
     return render_template("form.html", success=False)
 
 if __name__ == "__main__":
