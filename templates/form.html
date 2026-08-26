@@ -76,48 +76,83 @@
             line-height: 1.4;
         }
 
-        .alert-success {
+        /* Thank You Modal Styling */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            animation: scaleUp 0.3s ease;
+        }
+
+        .modal-icon {
+            width: 60px;
+            height: 60px;
+            background: #e7f7ee;
+            color: #0d6445;
+            font-size: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 9px;
-            margin: 0 0 18px;
-            padding: 11px 14px;
-            color: #0d6445;
-            background: #e7f7ee;
-            border: 1px solid #8bcaae;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 600;
-            text-align: center;
-            animation: success-pop 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
-        }
-
-        .success-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 22px;
-            height: 22px;
-            flex-shrink: 0;
-            color: #0d6445;
-            background: #ffffff;
-            border: 1px solid #0d6445;
             border-radius: 50%;
-            font-size: 13px;
-            font-weight: 800;
-            animation: success-pulse 1.15s ease-out 0.35s both;
+            margin: 0 auto 15px;
+            font-weight: bold;
         }
 
-        @keyframes success-pop {
-            0% { opacity: 0; transform: translateY(-7px) scale(0.98); }
-            70% { opacity: 1; transform: translateY(1px) scale(1.01); }
-            100% { opacity: 1; transform: translateY(0) scale(1); }
+        .modal-content h3 {
+            font-size: 22px;
+            color: #111716;
+            margin-bottom: 8px;
         }
 
-        @keyframes success-pulse {
-            0% { box-shadow: 0 0 0 0 rgba(13, 100, 69, 0.32); }
-            100% { box-shadow: 0 0 0 9px rgba(13, 100, 69, 0); }
+        .modal-content p {
+            font-size: 14px;
+            color: #5e6664;
+            margin-bottom: 20px;
+        }
+
+        .modal-btn {
+            background: var(--zagu-green);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s;
+        }
+
+        .modal-btn:hover {
+            background: var(--zagu-green-dark);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes scaleUp {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
 
         .top-inputs {
@@ -402,6 +437,16 @@
 </head>
 <body>
 
+    <!-- Thank You Modal Pop-up -->
+    <div class="modal-overlay" id="thankYouModal">
+        <div class="modal-content">
+            <div class="modal-icon">✓</div>
+            <h3>Thank You!</h3>
+            <p>Matagumpay na naisumite ang iyong mga datos. Pwede ka nang mag-submit ng panibago.</p>
+            <button class="modal-btn" id="closeModalBtn">OK</button>
+        </div>
+    </div>
+
     <div class="container">
         <div class="header">
             <img src="{{ url_for('static', filename='zagu/zagu-logo.png') }}" alt="Zagu logo" class="logo">
@@ -410,13 +455,6 @@
                 <p>Enter daily sales for all 5 promo flavors.</p>
             </div>
         </div>
-
-        {% if success %}
-        <div class="alert-success">
-            <span class="success-icon" aria-hidden="true">✓</span>
-            <span>Successfully submitted! Pwede ka nang mag-submit ng panibago.</span>
-        </div>
-        {% endif %}
 
         <form method="POST" id="promo-form">
             <div class="top-inputs">
@@ -548,6 +586,21 @@
             const form = document.getElementById('promo-form');
             const submitButton = document.getElementById('submit-button');
             const submitLabel = submitButton ? submitButton.querySelector('.submit-label') : null;
+            const thankYouModal = document.getElementById('thankYouModal');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+
+            // I-check kung successful ang submit mula sa Flask backend
+            const isSuccess = '{{ success|tojson }}' === 'true';
+
+            if (isSuccess && thankYouModal) {
+                thankYouModal.style.display = 'flex';
+            }
+
+            if (closeModalBtn && thankYouModal) {
+                closeModalBtn.addEventListener('click', function () {
+                    thankYouModal.style.display = 'none';
+                });
+            }
 
             if (!form || !submitButton || !submitLabel) return;
 
