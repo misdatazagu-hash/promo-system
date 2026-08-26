@@ -1,94 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zagu Promo System - All Flavors Entry</title>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 550px; }
-        h2 { text-align: center; color: #333; margin-bottom: 20px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; color: #555; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 14px; }
-        button { width: 100%; background-color: #4CAF50; color: white; padding: 12px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 10px; }
-        button:hover { background-color: #45a049; }
-        .alert { background-color: #d4edda; color: #155724; padding: 15px; border-radius: 5px; text-align: center; margin-bottom: 20px; font-weight: bold; }
-        .section-title { font-size: 15px; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 5px; margin-top: 20px; margin-bottom: 15px; font-weight: bold; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h2>Zagu Promo Cup Sales Entry</h2>
-        
-        {% if success %}
-            <div class="alert">Successfully Submitted! Pwede ka nang mag-submit ng panibago.</div>
-        {% endif %}
-
-        <form method="POST">
-            <div class="form-group">
-                <label for="unique_code">Please enter the UNIQUE CODE * (Ex. ZAGU or ZAGU01)</label>
-                <input type="text" id="unique_code" name="unique_code" required placeholder="Enter unique code">
+<div class="flavor-section">
+                <h3>1. Mais Con Yelo</h3>
+                <div class="sizes-row">
+                    <div class="size-col"><label>BBZ Cup</label><input type="number" name="mcy_bbz" value="0" min="0" required></div>
+                    <div class="size-col"><label>Regular Cup</label><input type="number" name="mcy_reg" value="0" min="0" required></div>
+                    <div class="size-col"><label>Grande Cup</label><input type="number" name="mcy_grande" value="0" min="0" required></div>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="month">MONTH *</label>
-                <select id="month" name="month" required>
-                    <option value="">Select Month</option>
-                    <option value="January">January</option>
-                    <option value="February">February</option>
-                    <option value="March">March</option>
-                    <option value="April">April</option>
-                    <option value="May">May</option>
-                    <option value="June">June</option>
-                    <option value="July">July</option>
-                    <option value="August">August</option>
-                    <option value="September">September</option>
-                    <option value="October">October</option>
-                    <option value="November">November</option>
-                    <option value="December">December</option>
-                </select>
+            <div class="flavor-section">
+                <h3>2. Creme Brulee</h3>
+                <div class="sizes-row">
+                    <div class="size-col"><label>BBZ Cup</label><input type="number" name="cb_bbz" value="0" min="0" required></div>
+                    <div class="size-col"><label>Regular Cup</label><input type="number" name="cb_reg" value="0" min="0" required></div>
+                    <div class="size-col"><label>Grande Cup</label><input type="number" name="cb_grande" value="0" min="0" required></div>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="day">DAY *</label>
-                <select id="day" name="day" required>
-                    <option value="">Select Day</option>
-                    {% for d in range(1, 32) %}
-                        <option value="{{ d }}">{{ d }}</option>
-                    {% endfor %}
-                </select>
+            <div class="flavor-section">
+                <h3>3. Red Velvet Classic</h3>
+                <div class="sizes-row">
+                    <div class="size-col"><label>BBZ Cup</label><input type="number" name="rvc_bbz" value="0" min="0" required></div>
+                    <div class="size-col"><label>Regular Cup</label><input type="number" name="rvc_reg" value="0" min="0" required></div>
+                    <div class="size-col"><label>Grande Cup</label><input type="number" name="rvc_grande" value="0" min="0" required></div>
+                </div>
             </div>
 
-            <div class="section-title">Enter Cups Sold for All 5 Flavors:</div>
-
-            <div class="form-group">
-                <label for="mais_con_yelo">Mais Con Yelo *</label>
-                <input type="number" id="mais_con_yelo" name="mais_con_yelo" min="0" required value="0">
+            <div class="flavor-section">
+                <h3>4. Red Velvet Crunch</h3>
+                <div class="sizes-row">
+                    <div class="size-col"><label>BBZ Cup</label><input type="number" name="rvcr_bbz" value="0" min="0" required></div>
+                    <div class="size-col"><label>Regular Cup</label><input type="number" name="rvcr_reg" value="0" min="0" required></div>
+                    <div class="size-col"><label>Grande Cup</label><input type="number" name="rvcr_grande" value="0" min="0" required></div>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="creme_brulee">Creme Brulee *</label>
-                <input type="number" id="creme_brulee" name="creme_brulee" min="0" required value="0">
+            <div class="flavor-section">
+                <h3>5. Red Velvet Cheesecake</h3>
+                <div class="sizes-row">
+                    <div class="size-col"><label>BBZ Cup</label><input type="number" name="rvcc_bbz" value="0" min="0" required></div>
+                    <div class="size-col"><label>Regular Cup</label><input type="number" name="rvcc_reg" value="0" min="0" required></div>
+                    <div class="size-col"><label>Grande Cup</label><input type="number" name="rvcc_grande" value="0" min="0" required></div>
+                </div>
             </div>
-
-            <div class="form-group">
-                <label for="rv_classic">Red Velvet Classic *</label>
-                <input type="number" id="rv_classic" name="rv_classic" min="0" required value="0">
-            </div>
-
-            <div class="form-group">
-                <label for="rv_crunch">Red Velvet Crunch *</label>
-                <input type="number" id="rv_crunch" name="rv_crunch" min="0" required value="0">
-            </div>
-
-            <div class="form-group">
-                <label for="rv_cheesecake">Red Velvet Cheesecake *</label>
-                <input type="number" id="rv_cheesecake" name="rv_cheesecake" min="0" required value="0">
-            </div>
-
-            <button type="submit">Submit Data</button>
-        </form>
-    </div>
-</body>
-</html>
