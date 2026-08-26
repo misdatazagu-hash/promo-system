@@ -1,4 +1,5 @@
 import os
+import json
 from flask import Flask, render_template, request
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
@@ -7,132 +8,370 @@ import pandas as pd
 
 app = Flask(__name__)
 
+
+# ============================================================
+# GOOGLE SHEETS CONNECTION
+# ============================================================
 def get_client():
-    scope = ["https://spreadsheets.google.com/feeds", 'https://www.googleapis.com/auth/spreadsheets',
-             "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
-    
+    scope = [
+        "https://spreadsheets.google.com/feeds",
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive.file",
+        "https://www.googleapis.com/auth/drive"
+    ]
+
     creds_json = os.environ.get("GOOGLE_CREDENTIALS")
+
     if creds_json:
-        import json
         creds_dict = json.loads(creds_json)
-        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(
+            creds_dict, scope
+        )
     else:
-        creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
-        
+        creds = ServiceAccountCredentials.from_json_keyfile_name(
+            "credentials.json", scope
+        )
+
     return gspread.authorize(creds)
 
+
+# ============================================================
+# MASTER STORE LOOKUP
+# UNIQUE CODE -> BP CODE / BUSINESS NAME / REGION / STORE NAME
+# ============================================================
+def get_store_details(unique_code):
+    """
+    Reads Book2.xlsx and finds the exact Unique Code.
+
+    Expected columns in Book2.xlsx:
+        BP CODE
+        BUSINESS NAME
+        REGION
+        STORE NAME
+        Uniqe CODE
+
+    Returns:
+        dict with BP Code, Business Name, Region and Store Name
+        or None if the Unique Code does not exist.
+    """
+
+    unique_code = str(unique_code).strip().upper()
+
+    if not unique_code:
+        return None
+
+    try:
+        df = pd.read_excel("Book2.xlsx", sheet_name=0)
+
+        # Normalize headers:
+        # "Uniqe CODE" -> "UNIQE CODE"
+        df.columns = [
+            str(col).strip().upper().replace("_", " ")
+            for col in df.columns
+        ]
+
+        # The uploaded master file uses "Uniqe CODE".
+        # We explicitly support both the existing spelling and the
+        # correct spelling "UNIQUE CODE".
+        code_candidates = [
+            "UNIQUE CODE",
+            "UNIQE CODE"
+        ]
+
+        code_col = next(
+            (col for col in code_candidates if col in df.columns),
+            None
+        )
+
+        if not code_col:
+            raise ValueError(
+                "Hindi makita ang Unique Code column sa Book2.xlsx. "
+                "Expected: 'Uniqe CODE' or 'UNIQUE CODE'."
+            )
+
+        required_columns = [
+            "BP CODE",
+            "BUSINESS NAME",
+            "REGION",
+            "STORE NAME"
+        ]
+
+        missing = [col for col in required_columns if col not in df.columns]
+
+        if missing:
+            raise ValueError(
+                "Missing columns sa Book2.xlsx: " + ", ".join(missing)
+            )
+
+        # Normalize the values in the Unique Code column.
+        code_values = (
+            df[code_col]
+            .fillna("")
+            .astype(str)
+            .str.strip()
+            .str.upper()
+        )
+
+        match = df[code_values == unique_code]
+
+        if match.empty:
+            return None
+
+        # Use the first exact match.
+        row = match.iloc[0]
+
+        def clean_value(value):
+            if pd.isna(value):
+                return ""
+            return str(value).strip()
+
+        return {
+            "bp_code": clean_value(row["BP CODE"]),
+            "business_name": clean_value(row["BUSINESS NAME"]),
+            "region": clean_value(row["REGION"]),
+            "store_name": clean_value(row["STORE NAME"])
+        }
+
+    except Exception as ex:
+        print(f"Master Store Lookup Error: {ex}")
+        raise
+
+
+# ============================================================
+# FORM
+# ============================================================
 @app.route("/", methods=["GET", "POST"])
 def index():
     success = False
+    error = ""
+
     if request.method == "POST":
         try:
-            unique_code = request.form.get("unique_code", "").strip().upper()
+            # ------------------------------------------------
+            # FORM INPUTS
+            # ------------------------------------------------
+            unique_code = request.form.get(
+                "unique_code", ""
+            ).strip().upper()
+
             month = request.form.get("month", "").strip()
             day = request.form.get("day", "").strip()
-            
+
+            # ------------------------------------------------
+            # VALIDATE BASIC INPUTS
+            # ------------------------------------------------
+            if not unique_code:
+                error = "Please enter the UNIQUE CODE."
+                return render_template(
+                    "form.html",
+                    success=False,
+                    error=error
+                )
+
+            if not month:
+                error = "Please select the MONTH."
+                return render_template(
+                    "form.html",
+                    success=False,
+                    error=error
+                )
+
+            if not day:
+                error = "Please select the DAY."
+                return render_template(
+                    "form.html",
+                    success=False,
+                    error=error
+                )
+
+            # ------------------------------------------------
+            # AUTOMATIC STORE LOOKUP
+            # ------------------------------------------------
+            store = get_store_details(unique_code)
+
+            if not store:
+                error = (
+                    f"Unique Code '{unique_code}' was not found "
+                    "in Book2.xlsx. Please check the code."
+                )
+
+                return render_template(
+                    "form.html",
+                    success=False,
+                    error=error
+                )
+
+            bp_code = store["bp_code"]
+            business_name = store["business_name"]
+            region = store["region"]
+            store_name = store["store_name"]
+
+            # Prevent saving an incomplete master record.
+            missing_details = []
+
+            if not bp_code:
+                missing_details.append("BP CODE")
+            if not business_name:
+                missing_details.append("BUSINESS NAME")
+            if not region:
+                missing_details.append("REGION")
+            if not store_name:
+                missing_details.append("STORE NAME")
+
+            if missing_details:
+                error = (
+                    f"Unique Code '{unique_code}' was found, "
+                    f"but the master record is missing: "
+                    f"{', '.join(missing_details)}."
+                )
+
+                return render_template(
+                    "form.html",
+                    success=False,
+                    error=error
+                )
+
+            # ------------------------------------------------
+            # FLAVOR DATA
+            # ------------------------------------------------
             flavors_data = {
                 "Mais Con Yelo": [
-                    request.form.get("mcy_bbz", "0"), request.form.get("mcy_reg", "0"), request.form.get("mcy_grande", "0")
+                    request.form.get("mcy_bbz", "0"),
+                    request.form.get("mcy_reg", "0"),
+                    request.form.get("mcy_grande", "0")
                 ],
+
                 "Creme Brulee": [
-                    request.form.get("cb_bbz", "0"), request.form.get("cb_reg", "0"), request.form.get("cb_grande", "0")
+                    request.form.get("cb_bbz", "0"),
+                    request.form.get("cb_reg", "0"),
+                    request.form.get("cb_grande", "0")
                 ],
+
                 "Red_Velvent_Classic": [
-                    request.form.get("rvc_bbz", "0"), request.form.get("rvc_reg", "0"), request.form.get("rvc_grande", "0")
+                    request.form.get("rvc_bbz", "0"),
+                    request.form.get("rvc_reg", "0"),
+                    request.form.get("rvc_grande", "0")
                 ],
+
                 "Red_Velvent_Crunch": [
-                    request.form.get("rvcr_bbz", "0"), request.form.get("rvcr_reg", "0"), request.form.get("rvcr_grande", "0")
+                    request.form.get("rvcr_bbz", "0"),
+                    request.form.get("rvcr_reg", "0"),
+                    request.form.get("rvcr_grande", "0")
                 ],
-                "Red_Velvent_Cheese_Cake": [
-                    request.form.get("rvcc_bbz", "0"), request.form.get("rvcc_reg", "0"), request.form.get("rvcc_grande", "0")
+
+                "Red_Velvet_Cheese_Cake": [
+                    request.form.get("rvcc_bbz", "0"),
+                    request.form.get("rvcc_reg", "0"),
+                    request.form.get("rvcc_grande", "0")
                 ]
             }
-            
-            # --- PAGBASA SA Book2.xlsx ---
-            bp_code = business_name = region = store_name = email = ""
-            try:
-                if os.path.exists("Book2.xlsx"):
-                    df = pd.read_excel("Book2.xlsx", sheet_name=0)
-                    print("Excel columns found:", df.columns.tolist()) # Makikita sa Render logs
-                    
-                    # Linisin ang column names
-                    df.columns = [str(c).strip().upper() for c in df.columns]
-                    
-                    # Hanapin ang column para sa code
-                    code_col = None
-                    for col in df.columns:
-                        if 'CODE' in col or 'UNIQ' in col:
-                            code_col = col
-                            break
-                    
-                    if code_col:
-                        match = df[df[code_col].astype(str).str.strip().str.upper() == unique_code]
-                        if not match.empty:
-                            row_data = match.iloc[0]
-                            for col in df.columns:
-                                val = str(row_data.get(col, ""))
-                                if val == "nan" or val == "None":
-                                    val = ""
-                                    
-                                if 'BP' in col:
-                                    bp_code = val
-                                elif 'BUS' in col:
-                                    business_name = val
-                                elif 'REG' in col:
-                                    region = val
-                                elif 'STORE' in col:
-                                    store_name = val
-                else:
-                    print("WARNING: Book2.xlsx not found in directory!")
-            except Exception as ex:
-                print(f"Excel Error Detailed: {ex}")
-            
-            # Fallback/Emergency Mapping kung sakaling hindi mabasa ang Excel sa Render
-            # (Puwede mo itong i-update kung ano ang tamang detalyeng nakalagay sa Book2.xlsx para sa 8TH)
-            if not store_name and unique_code == "8TH":
-                bp_code = "BP-8TH-01"
-                business_name = "Sample Business 8TH"
-                region = "Metro Manila"
-                store_name = "Store 8TH Branch"
 
+            # ------------------------------------------------
+            # GOOGLE SHEETS
+            # ------------------------------------------------
             client = get_client()
             spreadsheet = client.open("PROMO PRODUCT MONITORING")
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            
-            # Pag-update / pag-save sa mga tabs nang walang duplicate rows
+
+            timestamp = datetime.now().strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
+
+            # ------------------------------------------------
+            # SAVE EACH FLAVOR
+            #
+            # Column order:
+            # A Timestamp
+            # B Unique Code
+            # C BP Code
+            # D Business Name
+            # E Region
+            # F Store Name
+            # G BBZ
+            # H Regular
+            # I Grande
+            # J Month
+            # K Days
+            # L Gmail
+            # ------------------------------------------------
             for sheet_name, sizes in flavors_data.items():
                 try:
                     worksheet = spreadsheet.worksheet(sheet_name)
                     all_records = worksheet.get_all_values()
-                    
+
+                    # ------------------------------------------------
+                    # SMART REPLACEMENT
+                    # If this Unique Code already exists in this
+                    # flavor sheet, remove the previous row first.
+                    # ------------------------------------------------
                     rows_to_delete = []
+
                     if len(all_records) > 1:
-                        for idx, row in enumerate(all_records[1:], start=2):
+                        for idx, row in enumerate(
+                            all_records[1:], start=2
+                        ):
                             if len(row) > 1:
-                                existing_code = str(row[1]).strip().upper()
+                                existing_code = (
+                                    str(row[1]).strip().upper()
+                                )
+
                                 if existing_code == unique_code:
                                     rows_to_delete.append(idx)
-                    
-                    for r_idx in sorted(rows_to_delete, reverse=True):
-                        worksheet.delete_rows(r_idx)
-                    
-                    # Pag-save ng kumpletong data
-                    row_to_insert = [
-                        timestamp, unique_code, bp_code, business_name, region, store_name,
-                        sizes[0], sizes[1], sizes[2], month, day, email
-                    ]
-                    worksheet.append_row(row_to_insert)
-                    
-                except Exception as ex:
-                    print(f"Sheet Error sa {sheet_name}: {ex}")
-            
-            success = True
-            
-        except Exception as e:
-            print(f"General Error: {e}")
-            success = False
-            
-    return render_template("form.html", success=success)
 
+                    for r_idx in sorted(
+                        rows_to_delete, reverse=True
+                    ):
+                        worksheet.delete_rows(r_idx)
+
+                    # Email/Gmail is not required by the current form.
+                    email = request.form.get(
+                        "email", ""
+                    ).strip()
+
+                    row_to_insert = [
+                        timestamp,
+                        unique_code,
+                        bp_code,
+                        business_name,
+                        region,
+                        store_name,
+                        sizes[0],
+                        sizes[1],
+                        sizes[2],
+                        month,
+                        day,
+                        email
+                    ]
+
+                    worksheet.append_row(row_to_insert)
+
+                except Exception as ex:
+                    print(
+                        f"Sheet Error sa {sheet_name}: {ex}"
+                    )
+
+            success = True
+
+        except Exception as ex:
+            print(f"General Error: {ex}")
+            error = (
+                "May error sa pag-submit. "
+                "Please check the server console."
+            )
+            success = False
+
+    return render_template(
+        "form.html",
+        success=success,
+        error=error
+    )
+
+
+# ============================================================
+# RUN
+# ============================================================
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(
+        host="0.0.0.0",
+        port=5000,
+        debug=True
+    )
