@@ -48,29 +48,32 @@ def index():
                 ]
             }
             
-            # --- MAS MATIBAY NA PAGBASA SA Book2.xlsx ---
+            # --- PAGBASA SA Book2.xlsx (Kasama ang 'Uniqe' spelling) ---
             bp_code = business_name = region = store_name = email = ""
             try:
                 df = pd.read_excel("Book2.xlsx", sheet_name=0)
-                # Alisin ang spaces sa column names at gawing uppercase para sigurado
+                # I-normalize ang column names (alisin ang spaces at gawing uppercase)
+                original_columns = df.columns
                 df.columns = [str(c).strip().upper() for c in df.columns]
                 
-                # Hanapin kung aling column ang may code/unique
+                # Hanapin ang column na tumutugma sa code (uniq, code, etc.)
                 code_col = None
                 for col in df.columns:
-                    if 'CODE' in col or 'UNIQUE' in col:
+                    if 'CODE' in col or 'UNIQ' in col:
                         code_col = col
                         break
                 
                 if code_col:
-                    # Hanapin ang row kung saan tumutugma ang unique code
                     match = df[df[code_col].astype(str).str.strip().str.upper() == unique_code]
                     if not match.empty:
                         row_data = match.iloc[0]
                         
-                        # Kunin ang mga detalye base sa karaniwang pangalan ng column
+                        # Kunin ang mga detalye gamit ang orihinal o modified column names
                         for col in df.columns:
                             val = str(row_data.get(col, ""))
+                            if val == "nan":
+                                val = ""
+                                
                             if 'BP' in col:
                                 bp_code = val
                             elif 'BUSINESS' in col:
