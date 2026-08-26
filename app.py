@@ -3,6 +3,7 @@ from flask import Flask, render_template, request
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
+import pandas as pd
 
 app = Flask(__name__)
 
@@ -28,7 +29,6 @@ def index():
             month = request.form.get("month")
             day = request.form.get("day")
             
-            # Mga flavors at kaukulang tab names (Siguraduhing sakto sa pangalan ng tabs sa Google Sheet mo)
             flavors_data = {
                 "Mais Con Yelo": [
                     request.form.get("mcy_bbz", "0"), request.form.get("mcy_reg", "0"), request.form.get("mcy_grande", "0")
@@ -47,35 +47,26 @@ def index():
                 ]
             }
             
+            # Basahin ang Book2.xlsx para makuha ang tamang details gamit ang Unique Code
+            bp_code = business_name = region = store_name = email = ""
+            try:
+                df = pd.read_excel("Book2.xlsx", sheet_name=0)
+                # Hanapin ang row na tugma ang Unique Code
+                match = df[df['Uniqe CODE'].astype(str).str.strip().str.upper() == unique_code]
+                if not match.empty:
+                    row_data = match.iloc[0]
+                    bp_code = str(row_data.get("BP CODE", ""))
+                    business_name = str(row_data.get("BUSINESS NAME", ""))
+                    region = str(row_data.get("REGION", ""))
+                    store_name = str(row_data.get("STORE NAME", ""))
+            except Exception as ex:
+                print(f"Error sa pagbasa ng Book2.xlsx: {ex}")
+            
             client = get_client()
             spreadsheet = client.open("PROMO PRODUCT MONITORING")
-            
-            bp_code = business_name = region = store_name = email = ""
-            
-            # Subukang basahin ang master list mula sa unang tab o sa tab na naglalaman ng 'Uniqe CODE'
-            try:
-                base_sheet = spreadsheet.get_worksheet(0)
-                base_records = base_sheet.get_all_records()
-                for row in base_records:
-                    code_val = str(
-                        row.get("Please enter the UNIQUE CODE", 
-                        row.get("Uniqe CODE", 
-                        row.get("Unique Code", "")))
-                    ).strip().upper()
-                    
-                    if code_val and code_val == unique_code:
-                        bp_code = str(row.get("BP CODE", ""))
-                        business_name = str(row.get("BUSINESS NAME", ""))
-                        region = str(row.get("REGION", ""))
-                        store_name = str(row.get("STORE NAME", ""))
-                        email = str(row.get("Email Address", ""))
-                        break
-            except Exception as master_err:
-                print(f"Babala sa pagbasa ng master list: {master_err}")
-                    
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
-            # I-save sa bawat tab ng flavors
+            # I-save sa bawat tab ng flavors kasama na ang kumpletong details
             for sheet_name, sizes in flavors_data.items():
                 try:
                     worksheet = spreadsheet.worksheet(sheet_name)
@@ -85,12 +76,12 @@ def index():
                     ]
                     worksheet.append_row(row_to_insert)
                 except Exception as ex:
-                    print(f"Error sa pagpasok sa tab na {sheet_name}: {ex}")
+                    print(f"Error sa tab na {sheet_name}: {ex}")
             
             return render_template("form.html", success=True)
             
         except Exception as e:
-            print(f"General Error sa pag-submit: {e}")
+            print(f"General Error: {e}")
             return render_template("form.html", success=False)
             
     return render_template("form.html", success=False)
