@@ -232,7 +232,7 @@ def index():
                 )
 
             # ------------------------------------------------
-            # FLAVOR DATA (Ginawang int() para maging number)
+            # FLAVOR DATA (Na-fix ang spelling ng Red_Velvent_Cheese_Cake)
             # ------------------------------------------------
             flavors_data = {
                 "Mais Con Yelo": [
@@ -259,7 +259,7 @@ def index():
                     int(request.form.get("rvcr_grande") or 0)
                 ],
 
-                "Red_Velvet_Cheese_Cake": [
+                "Red_Velvent_Cheese_Cake": [
                     int(request.form.get("rvcc_bbz") or 0),
                     int(request.form.get("rvcc_reg") or 0),
                     int(request.form.get("rvcc_grande") or 0)
@@ -278,20 +278,6 @@ def index():
 
             # ------------------------------------------------
             # SAVE EACH FLAVOR
-            #
-            # Column order:
-            # A Timestamp
-            # B Unique Code
-            # C BP Code
-            # D Business Name
-            # E Region
-            # F Store Name
-            # G BBZ
-            # H Regular
-            # I Grande
-            # J Month
-            # K Days
-            # L Gmail
             # ------------------------------------------------
             for sheet_name, sizes in flavors_data.items():
                 try:
@@ -300,8 +286,6 @@ def index():
 
                     # ------------------------------------------------
                     # SMART REPLACEMENT
-                    # If this Unique Code already exists in this
-                    # flavor sheet, remove the previous row first.
                     # ------------------------------------------------
                     rows_to_delete = []
 
@@ -322,7 +306,6 @@ def index():
                     ):
                         worksheet.delete_rows(r_idx)
 
-                    # Email/Gmail is not required by the current form.
                     email = request.form.get(
                         "email", ""
                     ).strip()
