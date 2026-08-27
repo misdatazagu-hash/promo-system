@@ -232,37 +232,37 @@ def index():
                 )
 
             # ------------------------------------------------
-            # FLAVOR DATA
+            # FLAVOR DATA (Ginawang int() para maging number)
             # ------------------------------------------------
             flavors_data = {
                 "Mais Con Yelo": [
-                    request.form.get("mcy_bbz", "0"),
-                    request.form.get("mcy_reg", "0"),
-                    request.form.get("mcy_grande", "0")
+                    int(request.form.get("mcy_bbz") or 0),
+                    int(request.form.get("mcy_reg") or 0),
+                    int(request.form.get("mcy_grande") or 0)
                 ],
 
                 "Creme Brulee": [
-                    request.form.get("cb_bbz", "0"),
-                    request.form.get("cb_reg", "0"),
-                    request.form.get("cb_grande", "0")
+                    int(request.form.get("cb_bbz") or 0),
+                    int(request.form.get("cb_reg") or 0),
+                    int(request.form.get("cb_grande") or 0)
                 ],
 
                 "Red_Velvent_Classic": [
-                    request.form.get("rvc_bbz", "0"),
-                    request.form.get("rvc_reg", "0"),
-                    request.form.get("rvc_grande", "0")
+                    int(request.form.get("rvc_bbz") or 0),
+                    int(request.form.get("rvc_reg") or 0),
+                    int(request.form.get("rvc_grande") or 0)
                 ],
 
                 "Red_Velvent_Crunch": [
-                    request.form.get("rvcr_bbz", "0"),
-                    request.form.get("rvcr_reg", "0"),
-                    request.form.get("rvcr_grande", "0")
+                    int(request.form.get("rvcr_bbz") or 0),
+                    int(request.form.get("rvcr_reg") or 0),
+                    int(request.form.get("rvcr_grande") or 0)
                 ],
 
                 "Red_Velvet_Cheese_Cake": [
-                    request.form.get("rvcc_bbz", "0"),
-                    request.form.get("rvcc_reg", "0"),
-                    request.form.get("rvcc_grande", "0")
+                    int(request.form.get("rvcc_bbz") or 0),
+                    int(request.form.get("rvcc_reg") or 0),
+                    int(request.form.get("rvcc_grande") or 0)
                 ]
             }
 
@@ -338,7 +338,7 @@ def index():
                         sizes[1],
                         sizes[2],
                         month,
-                        day,
+                        int(day) if day else 0,
                         email
                     ]
 
