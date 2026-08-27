@@ -232,7 +232,7 @@ def index():
                 )
 
             # ------------------------------------------------
-            # FLAVOR DATA (Na-fix ang spelling ng Red_Velvent_Cheese_Cake)
+            # FLAVOR DATA
             # ------------------------------------------------
             flavors_data = {
                 "Mais Con Yelo": [
@@ -285,7 +285,7 @@ def index():
                     all_records = worksheet.get_all_values()
 
                     # ------------------------------------------------
-                    # SMART REPLACEMENT
+                    # SMART REPLACEMENT (DELETE OLD RECORD IF EXISTS)
                     # ------------------------------------------------
                     rows_to_delete = []
 
@@ -325,7 +325,16 @@ def index():
                         email
                     ]
 
-                    worksheet.append_row(row_to_insert)
+                    # ------------------------------------------------
+                    # EXACT ROW INSERTION (A TO L COLUMNS)
+                    # ------------------------------------------------
+                    col_a_values = worksheet.col_values(1)
+                    next_row = len(col_a_values) + 1
+                    if next_row < 4:
+                        next_row = 4
+
+                    range_to_update = f"A{next_row}:L{next_row}"
+                    worksheet.update(range_to_update, [row_to_insert])
 
                 except Exception as ex:
                     print(
