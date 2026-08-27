@@ -602,25 +602,6 @@
                 });
             }
 
-            // Auto-scroll to next flavor card when filling out cup counts
-            const flavorCards = document.querySelectorAll('.flavor-card');
-            
-            flavorCards.forEach((card, index) => {
-                const inputs = card.querySelectorAll('input[type="number"]');
-                inputs.forEach(input => {
-                    input.addEventListener('change', function () {
-                        if (index + 1 < flavorCards.length) {
-                            setTimeout(() => {
-                                flavorCards[index + 1].scrollIntoView({
-                                    behavior: 'smooth',
-                                    block: 'center'
-                                });
-                            }, 300);
-                        }
-                    });
-                });
-            });
-
             if (!form || !submitButton || !submitLabel) return;
 
             form.addEventListener('submit', function () {
