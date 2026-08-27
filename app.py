@@ -285,7 +285,7 @@ def index():
                     all_records = worksheet.get_all_values()
 
                     # ------------------------------------------------
-                    # SMART REPLACEMENT (DELETE OLD RECORD IF EXISTS)
+                    # SMART REPLACEMENT (DELETE OLD RECORD IF EXACT MATCH: CODE, MONTH, DAY)
                     # ------------------------------------------------
                     rows_to_delete = []
 
@@ -293,12 +293,17 @@ def index():
                         for idx, row in enumerate(
                             all_records[1:], start=2
                         ):
-                            if len(row) > 1:
-                                existing_code = (
-                                    str(row[1]).strip().upper()
-                                )
+                            if len(row) > 10:
+                                existing_code = str(row[1]).strip().upper()
+                                existing_month = str(row[9]).strip()
+                                existing_day = str(row[10]).strip()
 
-                                if existing_code == unique_code:
+                                # Burahin lang kung pareho ang Code, Month, AT Day
+                                if (
+                                    existing_code == unique_code and 
+                                    existing_month == month and 
+                                    existing_day == str(day)
+                                ):
                                     rows_to_delete.append(idx)
 
                     for r_idx in sorted(
